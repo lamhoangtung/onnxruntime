@@ -28,7 +28,7 @@ steps:
      **/*.dll
       
 #Manually set msBuildCommandline so that we can also set CAExcludePath
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-prefast.SDLNativeRules@2
+- task: SDLNativeRules@2
   displayName: 'Run the PREfast SDL Native Rules for MSBuild'
   inputs:
     userProvideBuildInfo: msBuildInfo
@@ -37,7 +37,7 @@ steps:
     msBuildCommandline: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\amd64\msbuild.exe" "$(Build.BinariesDirectory)\RelWithDebInfo\onnxruntime.sln" /p:platform="${{parameters.msbuildPlatform}}" /p:configuration="RelWithDebInfo" /p:CAExcludePath="$(Build.BinariesDirectory);$(Build.SourcesDirectory)\cmake;C:\program files (x86)" /p:VisualStudioVersion="16.0" /m /p:PreferredToolArchitecture=x64'
   continueOnError: true
 
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+- task: SdtReport@1
   displayName: 'Create Security Analysis Report'
   inputs:
     BinSkim: true
@@ -45,12 +45,12 @@ steps:
     CredScan: true
     SDLNativeRules: true
 
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
+- task: PublishSecurityAnalysisLogs@2
   displayName: 'Publish Security Analysis Logs'
   continueOnError: true
 
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-uploadtotsa.TSAUpload@1
-  #condition: and (succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+- task: TSAUpload@1
+  condition: and (succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   displayName: 'TSA Upload'
   inputs:
     tsaVersion: TsaV2
