@@ -711,7 +711,7 @@ jobs:
   dependsOn:
     Jar_Packaging
   steps:
-  - template: templates/set-version-number-variables-step.yml
+  - template: set-version-number-variables-step.yml
 
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Final Jar'
@@ -740,7 +740,7 @@ jobs:
   dependsOn:
     Jar_Packaging
   steps:
-  - template: templates/set-version-number-variables-step.yml
+  - template: set-version-number-variables-step.yml
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Final Jar'
     inputs:
@@ -775,7 +775,7 @@ jobs:
   dependsOn:
     Jar_Packaging
   steps:
-  - template: templates/set-version-number-variables-step.yml
+  - template: set-version-number-variables-step.yml
 
   - task: DownloadPipelineArtifact@2
     displayName: 'Download Final Jar'
