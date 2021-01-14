@@ -951,6 +951,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Android" AND Onnxruntime_GCOV_COVERAGE)
   string(APPEND CMAKE_C_FLAGS   " -g -O0 --coverage ")
 endif()
 
+set(ORT_WARNING_FLAGS )
 #Adjust warning flags
 if (WIN32)
     add_definitions(-DPLATFORM_WINDOWS -DNOGDI -DNOMINMAX -D_USE_MATH_DEFINES)
@@ -959,28 +960,30 @@ if (WIN32)
     endif()
     # parallel build
     # These compiler opitions cannot be forwarded to NVCC, so cannot use add_compiler_options
-    string(APPEND CMAKE_CXX_FLAGS " /MP /W4")
+    string(APPEND CMAKE_CXX_FLAGS " /MP")
+    if(onnxruntime_USE_CUDA)
+      list(APPEND ORT_WARNING_FLAGS "/W3")
+    else()
+      list(APPEND ORT_WARNING_FLAGS "/W4")
+    endif()
     #Compiler bug, we should get such warnings. It will be fixed in a new VC release
-    string(APPEND CMAKE_CXX_FLAGS " /wd4127")
+    list(APPEND ORT_WARNING_FLAGS "/wd4127")
     # class needs to have dll-interface to be used by clients
-    string(APPEND CMAKE_CXX_FLAGS " /wd4251")
+    list(APPEND ORT_WARNING_FLAGS "/wd4251")
     # issued by thrust nonstandard extension used: nameless struct/union
-    string(APPEND CMAKE_CXX_FLAGS " /wd4201")
+    list(APPEND ORT_WARNING_FLAGS "/wd4201")
     if (onnxruntime_ENABLE_STATIC_ANALYSIS)
-        string(APPEND CMAKE_CXX_FLAGS
-            " /analyze:stacksize 131072"
-            # disable warning because there are many occurrences from test macros
-            " /wd6326 " # potential comparison of a constant with another constant            
-        )
+        list(APPEND ORT_WARNING_FLAGS "/analyze:stacksize 131072")
+        list(APPEND ORT_WARNING_FLAGS "/wd6326") # potential comparison of a constant with another constant        
         if(onnxruntime_USE_OPENMP)
-          string(APPEND CMAKE_CXX_FLAGS " /wd6993") # Code analysis ignores OpenMP constructs
+          list(APPEND ORT_WARNING_FLAGS "/wd6993") # Code analysis ignores OpenMP constructs
         endif()
     endif()
     # Treat warning as error if onnxruntime_DEV_MODE is ON
     # For cross-compiled ARM64 binaries, there are too many warnings to fix, hence ignore warnings for now
     if (onnxruntime_DEV_MODE AND NOT CMAKE_CROSSCOMPILING)
       # treat warnings as errors
-      string(APPEND CMAKE_CXX_FLAGS " /WX")
+      list(APPEND ORT_WARNING_FLAGS "/WX")
       foreach(type EXE STATIC SHARED)
         set(CMAKE_${type}_LINKER_FLAGS "${CMAKE_${type}_LINKER_FLAGS} /WX")
       endforeach()
@@ -1008,6 +1011,10 @@ if (WIN32)
         endif()
       endforeach()
     endif()
+    foreach(ORT_FLAG ${ORT_WARNING_FLAGS})
+      string(APPEND CMAKE_CXX_FLAGS " ${ORT_FLAG}")
+      string(APPEND CMAKE_C_FLAGS " ${ORT_FLAG}")
+    endforeach()
 else()
   add_definitions(-DPLATFORM_POSIX)
   # Enable warning and enable space optimization in Linux
